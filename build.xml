@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="e-tracker-player" default="execute" xmlns:if="ant:if">
+
+	<property name="python" location="../../AppData/Local/Programs/Python/Python38/python.exe" />
+	<property name="pyz80" location="../../git/pyz80/pyz80.py" />
+	<property name="simcoupe.dir" location="C:\Program Files (x86)\SimCoupe" />
+	<property name="simcoupe.exe" value="SimCoupe.exe" />
+	<property name="mapfile" value="true" />
+	<property name="cmp" location="res/cmp_v1b/cmp.exe" />
+	
+	<!-- assemble -->
+
+	<macrodef name="assemble">
+		<attribute name="source" />
+		<attribute name="obj" default="@{source}" />
+		<attribute name="mapfile" default="true" />
+
+		<sequential>
+
+			<echo message="compiling: @{source} mapfile:@{mapfile}" />
+
+			<mkdir dir="obj" />
+
+			<exec executable="${python}" failonerror="true">
+				<arg value="${pyz80}" />
+				<arg value="-oobj/@{source}.dsk" />
+				<arg value="--mapfile=obj/@{source}.map" if:true="@{mapfile}" />
+				<arg value="src/@{source}.s" />
+
+			</exec>
+
+		</sequential>
+
+	</macrodef>
+
+	<!-- simcoupe -->
+
+	<macrodef name="simcoupe">
+		<attribute name="disk" />
+
+		<sequential>
+
+			<local name="dsk" />
+			<property name="dsk" location="obj/@{disk}.dsk" />
+
+			<echo message="${dsk}" />
+
+			<exec executable="${simcoupe.dir}/${simcoupe.exe}" spawn="true" dir="${simcoupe.dir}">
+				<arg value="${dsk}" />
+			</exec>
+
+		</sequential>
+
+	</macrodef>
+
+	<!-- execute -->
+
+	<target name="execute" description="execute">
+
+		<assemble source="play" />
+		<simcoupe disk="play" />
+
+	</target>
+
+	<!-- verify e-player disassembly -->
+
+	<target name="verify" description="verify e-player disassembly" xmlns:unless="ant:unless" >
+
+		<exec executable="${python}" failonerror="true">
+			<arg value="${pyz80}" />
+			<arg value="--mapfile=obj/samdos2.map" />
+			<arg value="--obj=obj/player.bin" />
+			<arg value="src/e-tracker player.s" />
+		</exec>
+
+		<property name="file1" location="obj/player.bin" />
+		<property name="file2" location="res/player.reference.bin" />
+
+		<condition property="identical" value="true">
+			<filesmatch file1="${file1}" file2="${file2}" />
+		</condition>
+
+		<exec executable="${cmp}" unless:true="${identical}">
+			<arg value="${file1}" />
+			<arg value="${file2}" />
+		</exec>
+
+		<fail message="compiled file '${file1}' does not match reference binary '${file2}'" unless:true="${identical}" />
+
+
+
+	</target>
+
+
+	<!-- clean -->
+
+	<target name="clean" description="clean obj">
+
+		<delete dir="obj" />
+		<mkdir dir="obj" />
+
+	</target>
+
+</project>
