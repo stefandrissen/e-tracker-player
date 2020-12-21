@@ -3,12 +3,11 @@
     dump 1,0
 
 etracker.init:
-etracker.play: equ etracker.init + 6
+etracker.play:  equ etracker.init + 6
 
-; include "e-tracker player.s"
+include "e-tracker player.s"
 
-etracker.init: equ &8000
-etracker.play: equ &8006
+@module.start:
 
 ; mdat "..\songs\Yerzmyey - Arcane Zone Part 2 (2013).cop"
 ; mdat "..\songs\Pyramex - Nyancat (2005).cop"
@@ -29,7 +28,7 @@ etracker.play: equ &8006
 ; mdat "..\songs\Tomkin - T'n'T Demo.etc"
 ; mdat "..\songs\Pyramex, Rob Hubbard - Zoids (2014).cop"
 ; mdat "..\songs\Sean Bernard - BOUNCE! (2015).c"
- mdat "..\songs\Pyramex - sam n bass (2018).etc"
+; mdat "..\songs\Pyramex - sam n bass (2018).etc"
 ; mdat "..\songs\Sean Bernard - Dance!.etc"
 ; mdat "..\songs\Pyramex - RobLike-1 (2014).cop"
 ; mdat "..\songs\Pyramex - Stax intro.etc"
@@ -38,13 +37,49 @@ etracker.play: equ &8006
 ; mdat "..\songs\Dan Zambonini - Memotech demo 1 (Part I).etc"
 ; mdat "..\songs\Craig Turberfield - Sophistry - ingame 6.etc"
 
+include "retrigger.s"
+
+@module.length: equ $ - @module.start
+
 autoexec
 
 start:
+
+    call @includes.player
+
+@data.only:
+
     call etracker.init
+
 ;    ld a,&c9                    ; opcode_ret
 ;    ld (disable_loop),a         ; prevent loop
 @loop:
     call etracker.play
     halt
     jr @loop
+
+;----------------------------------------------
+@includes.player:
+
+    ; if module starts with player (ld hl,&84b3),
+    ; copy module to normal location -
+
+    ld hl,module
+    ld a,(hl)
+    cp &21  ; ld hl,
+    ret nz
+    inc hl
+    ld a,(hl)
+    cp &b3
+    ret nz
+    inc hl
+    ld a,(hl)
+    cp &84
+    ret nz
+
+    ld hl,module + &04b3
+    ld de,module
+    ld bc,@module.length - &04b3
+    ldir
+
+    ret

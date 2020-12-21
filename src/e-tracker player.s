@@ -30,12 +30,12 @@ include "saa1099.i"
 
 etracker.init:
 
-    ld hl,@module
+    ld hl,module
     jp @init
 
 etracker.play:
 
-@var.speed:
+@var.delay:
     ld a,&01
     dec a
     jr nz,@same.notes
@@ -56,12 +56,12 @@ etracker.play:
     call @swap.nibbles.a
     or l
     ld (l80e5+1),a          ; noise
-l8028:
-    ld a,&06
+@var.song_speed:
+    ld a,6
 
 @same.notes:
 
-    ld (@var.speed+1),a
+    ld (@var.delay+1),a
 
     ld ix,@var.channel.0
     call @update.channel
@@ -187,6 +187,26 @@ l80e5:
     dec b                                   ; -> b = port.sound.data
     out (c),e
 
+if defined ( silent )
+
+    xor a
+    ld hl,@out + saa.register.amplitude_0
+    ld (hl),a       ; 0
+    inc hl
+    ld (hl),a       ; 1
+    inc hl
+;   ld (hl),a       ; 2 ! bleep
+    inc hl
+    ld (hl),a       ; 3
+    inc hl
+    ld (hl),a       ; 4
+    inc hl
+    ld (hl),a       ; 5
+
+    ;!!! silence channels
+
+endif
+
 l810f:
     ld hl,@out + saa.register.envelope_generator_1
     ld d,saa.register.envelope_generator_1  ; &19
@@ -289,10 +309,10 @@ l810f:
     defb @cmd.volume_reduction - @offset
 
     defb &0f                        ; [&0f-&10] -> c = [&00-&01]
-    defb @cmd.l8214 - @offset       ;
+    defb @cmd.l8214 - @offset
 
     defb &00                        ; [&00-&0f] -> c = [&00-&0f]
-    defb @cmd.l8208 - @offset       ;
+    defb @cmd.song_speed - @offset
 
 ;==============================================
 @swap.nibbles.a:
@@ -396,7 +416,7 @@ l810f:
     ret p           ; ret when (ix+@c.delay.next_note) > 0
 
     ld a,b
-    cp 3
+    cp 3            ; !!! bug??? should be cp 4 according to DTA
     ld hl,@out + saa.register.envelope_generator_0
     jr nc,$+3       ; channel > 3
     inc hl          ; hl = envelope_generator_1
@@ -451,8 +471,8 @@ l81b7:
     ld (ix+@c.ornament.lo),c
     ld (ix+@c.ornament.hi),b
 
-    ld (ix+&14),1
-    ld (ix+&15),1
+    ld (ix+@c.delay.next_ornament),1
+    ld (ix+@c.delay.next_instrument),1
     ld (ix+&16),1
 
     jr @get.command
@@ -481,11 +501,11 @@ l81b7:
     jr @get.command
 
 ;==============================================
-@cmd.l8208:
+@cmd.song_speed:
 
     ld a,c
     inc a
-    ld (l8028+1),a
+    ld (@var.song_speed+1),a
     jr @get.command
 
 ;==============================================
@@ -539,7 +559,7 @@ l81b7:
 
 ;----------------------------------------------
 
-l8235:
+@handle.instrument.special:
     cp &7f
     jr z,@set.instrument_loop
 
@@ -549,19 +569,22 @@ l8235:
     add a,2
     ld c,a
 l8240:
-    jr l8280
+    jr @handle.instrument
 
 @set.instrument_loop:
     ld (ix+@c.instrument.loop.lo),l
     ld (ix+@c.instrument.loop.hi),h
-    jr l8280
+    jr @handle.instrument
 
 @get.instrument_loop:
     ld l,(ix+@c.instrument.loop.lo)
     ld h,(ix+@c.instrument.loop.hi)
-    jr l8280
+    jr @handle.instrument
 
-l8252:
+;----------------------------------------------
+
+@handle.ornament.special:
+
     inc a
     jr z,@get.ornament_loop     ; a was &ff
 
@@ -569,18 +592,18 @@ l8252:
     jr z,@set.ornament_loop     ; a was &fe
 
     sub &60
-    ld c,a
-    jr l82a2
+    ld c,a                      ; c = entry a - &5e
+    jr @handle.ornament
 
 @get.ornament_loop:
     ld l,(ix+@c.ornament.loop.lo)
     ld h,(ix+@c.ornament.loop.hi)
-    jr l82a2
+    jr @handle.ornament
 
 @set.ornament_loop:
     ld (ix+@c.ornament.loop.lo),l
     ld (ix+@c.ornament.loop.hi),h
-    jr l82a2
+    jr @handle.ornament
 
 ;==============================================
 @update.channel:
@@ -596,46 +619,46 @@ l8252:
 
     ld e,(ix+&0a)
     ld d,(ix+&0b)
-    dec (ix+&15)
+    dec (ix+@c.delay.next_instrument)
     ld l,(ix+@c.instrument.lo)
     ld h,(ix+@c.instrument.hi)
-    jr nz,l8291
+    jr nz,@no.instrument.change
 
     ld c,1
-l8280:
+@handle.instrument:
     ld a,(hl)
     inc hl
     rrca
-    jr nc,l8235
+    jr nc,@handle.instrument.special
 
-    ld (ix+&15),c
+    ld (ix+@c.delay.next_instrument),c
     ld (ix+&0b),a
     ld e,(hl)
     ld d,a
     ld (ix+&0a),e
     inc hl
 
-l8291:
+@no.instrument.change:
     push hl
-    ld a,(ix+&0d)
-    dec (ix+&14)
-    jr nz,l82b4
+    ld a,(ix+@c.ornament)
+    dec (ix+@c.delay.next_ornament)
+    jr nz,@no.ornament.change
 
-    ld c,&01
+    ld c,1
     ld l,(ix+@c.ornament.lo)
     ld h,(ix+@c.ornament.hi)
-l82a2:
+@handle.ornament:
     ld a,(hl)
     inc hl
     cp &60
-    jr nc,l8252
+    jr nc,@handle.ornament.special ; a >= &60
 
-    ld (ix+&14),c
-    ld (ix+&0d),a
+    ld (ix+@c.delay.next_ornament),c
+    ld (ix+@c.ornament),a
     ld (ix+@c.ornament.lo),l
     ld (ix+@c.ornament.hi),h
 
-l82b4:
+@no.ornament.change:
     add a,(ix+@c.note)
     cp &5f
     ld hl,&07ff     ; maximum tone (7) + note (&ff)
@@ -774,14 +797,17 @@ l8337:
 @c.ornament.loop.hi:        equ &09
 
 @c.volume:                  equ &0c
-
+@c.ornament:                equ &0d
 @c.note:                    equ &0e
+
 @c.instrument.start.lo:     equ &0f
 @c.instrument.start.hi:     equ &10
 @c.ornament.start.lo:       equ &11
 @c.ornament.start.hi:       equ &12
 
 @c.delay.next_note:         equ &13
+@c.delay.next_ornament:     equ &14
+@c.delay.next_instrument:   equ &15
 
 @c.instrument.inversion:    equ &17
 @c.volume.reduction:        equ &18
@@ -849,7 +875,7 @@ l83ed:  defw 0
     call @bc.eq.section
     ld a,(bc)                   ; ???
     inc bc
-    ld (@var.82ec+1),a          ; ???
+    ld (@var.82ec+1),a          ; ??? song loop
     ld (@var.8327+1),bc         ; ???
 
     ld hl,@var.channels
@@ -861,15 +887,15 @@ l83ed:  defw 0
     djnz @-loop
 
     inc a                   ; -> a = 1
-    ld (@var.speed+1),a
+    ld (@var.delay+1),a
 
     ld ix,@var.channels
     ld de,@channel.size
 
     ld b,6
 @loop:
-    ld (ix+&14),a
-    ld (ix+&15),a
+    ld (ix+@c.delay.next_ornament),a
+    ld (ix+@c.delay.next_instrument),a
     ld (ix+&16),a
 
     ld hl,@instrument.no_loop
@@ -963,4 +989,4 @@ l83ed:  defw 0
 
 ;==============================================
 
-@module:
+module:
