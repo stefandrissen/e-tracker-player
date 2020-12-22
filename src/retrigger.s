@@ -44,49 +44,49 @@ defb &21
 defb &f1
 defb &51
 
-@track.5:
+@track.5:   ; first pattern, channel C
 assert $ == &2a
 
-defb &52
-defb &30
-defb &03
-defb &8a
-defb &d2
-defb &11
-defb &d2
-defb &89
-defb &d3
-defb &88
-defb &d3
-defb &87
-defb &d5
-defb &87
-defb &d5
-defb &7e
-defb &d3
-defb &53
-defb &e1
-defb &51
+defb &52    ; instrument 1
+defb &30    ; ornament 1
+defb &03    ; song speed 4
+defb &8a    ; note &18 C-3
+defb &d2    ; delay next note 0
+defb &11    ; volume reduction 0
+defb &d2    ; delay next note 0
+defb &89    ; note &17 B-2
+defb &d3    ; delay next note 1
+defb &88    ; note &16 A#2
+defb &d3    ; delay next note 1
+defb &87    ; note &15 A-2
+defb &d5    ; delay next note 3
+defb &87    ; note &15 A-2
+defb &d5    ; delay next note 3
+defb &7e    ; note &0c C-2
+defb &d3    ; delay next note 1
+defb &53    ; instrument 2
+defb &e1    ; delay next note 15
+defb &51    ; end of track
 
-@track.6:           ; problem track
+@track.6:   ; second pattern, channel c - problem track
 assert $ == &3e
 
-defb &52
-defb &30
-defb &03
-defb &d5
-defb &03
-defb &88
-defb &d3
-defb &87
-defb &d5
-defb &87
-defb &d5
-defb &7e
-defb &d3
-defb &53
-defb &e1
-defb &51
+defb &52    ; instrument 1  ; this is retriggering note
+defb &30    ; ornament 1
+defb &03    ; song speed 4
+defb &d5    ; delay next note 3
+defb &03    ; song speed 4
+defb &88    ; note &16 A#2
+defb &d3    ; delay next note 1
+defb &87    ; note &15 A-2
+defb &d5    ; delay next note 3
+defb &87    ; note &15 A-2
+defb &d5    ; delay next note 3
+defb &7e    ; note &0c C-2
+defb &d3    ; delay next note 1
+defb &53    ; instrument 2
+defb &e1    ; delay next note 15
+defb &51    ; end of track
 
 @track.7:
 assert $ == &4e
@@ -196,24 +196,28 @@ defb &00
 @song_table:
 assert $ == &0090
 
-defb &61
-defb &00
-defb &03
-defb &fe
-defb &06
-defb &ff
+defb &61    ; height 1
+defb &00    ; pattern 1
+defb &03    ; pattern 2
+defb &fe    ; set loop
+defb &06    ; pattern 3
+defb &ff    ; get loop
 
 ;----------------------------------------------
 
 @patterns:
 assert $ == &0096
 
+; pattern 1
+
 defw @track.1
 defw @track.4
-defw @track.5
+defw @track.5   ; ok
 defw @track.2
 defw @track.2
 defw @track.7
+
+; pattern 2
 
 defw @track.2
 defw @track.2
@@ -221,6 +225,8 @@ defw @track.6   ; problem
 defw @track.2
 defw @track.2
 defw @track.7
+
+; pattern 3
 
 defw @track.3
 defw @track.3

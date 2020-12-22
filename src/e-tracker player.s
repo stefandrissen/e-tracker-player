@@ -291,7 +291,7 @@ l810f:
     defb @cmd.set_instrument - @offset
 
     defb &51                        ; [&51] -> c = &00
-    defb @cmd.l822f - @offset
+    defb @cmd.end_of_track - @offset
 
     defb &50                        ; [&50] -> c = &00
     defb @cmd.stop_sound - @offset
@@ -423,8 +423,8 @@ l810f:
     ld (@ptr.envelope_generator+1),hl
 
 l81b7:
-    ld e,(ix+@c.pattern.lo)
-    ld d,(ix+@c.pattern.hi)
+    ld e,(ix+@c.track.lo)
+    ld d,(ix+@c.track.hi)
 
 @get.command:
 
@@ -503,6 +503,9 @@ l81b7:
 ;==============================================
 @cmd.song_speed:
 
+; input
+;   c = [&00-&0f]
+
     ld a,c
     inc a
     ld (@var.song_speed+1),a
@@ -547,12 +550,12 @@ l81b7:
 ;   c = [&00-&2d]
 
     ld (ix+@c.delay.next_note),c
-    ld (ix+@c.pattern.lo),e
-    ld (ix+@c.pattern.hi),d
+    ld (ix+@c.track.lo),e
+    ld (ix+@c.track.hi),d
     ret
 
 ;==============================================
-@cmd.l822f:
+@cmd.end_of_track:
 
     call @read.song_table
     jp l81b7
@@ -782,9 +785,9 @@ l8337:
 
 @var.channels:                                      ; &833d
 
-@c.pattern:                 equ &00                 ; address of pattern data
-    @c.pattern.lo:              equ &00
-    @c.pattern.hi:              equ &01
+@c.track:                   equ &00                 ; address of track data
+    @c.track.lo:                equ &00
+    @c.track.hi:                equ &01
 
 @c.instrument.lo:           equ &02
 @c.instrument.hi:           equ &03
@@ -946,22 +949,22 @@ l83ed:  defw 0
     ld hl,&0000
     call @bc.eq.section.c
 
-    ld (@var.channel.0+@c.pattern),bc
+    ld (@var.channel.0+@c.track),bc
 
     call @bc.eq.section
-    ld (@var.channel.1+@c.pattern),bc
+    ld (@var.channel.1+@c.track),bc
 
     call @bc.eq.section
-    ld (@var.channel.2+@c.pattern),bc
+    ld (@var.channel.2+@c.track),bc
 
     call @bc.eq.section
-    ld (@var.channel.3+@c.pattern),bc
+    ld (@var.channel.3+@c.track),bc
 
     call @bc.eq.section
-    ld (@var.channel.4+@c.pattern),bc
+    ld (@var.channel.4+@c.track),bc
 
     call @bc.eq.section
-    ld (@var.channel.5+@c.pattern),bc
+    ld (@var.channel.5+@c.track),bc
 
     ret
 
