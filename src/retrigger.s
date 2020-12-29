@@ -10,7 +10,7 @@ defw @song_table
 defw @patterns
 defw @instruments
 defw @ornaments
-defw &008c
+defw @instrument_delays
 
 defm "ETracker (C) BY ESI."
 
@@ -150,21 +150,21 @@ defb &fd
 defb &fe
 defb &04
 defb &1f
-defb &fe
+defb &fe    ; set loop
 defb &02
 defb &cc
-defb &fc
+defb &fc    ; get loop
 
 @instrument.2:
 assert $ == &7d
 
-defb &fe
+defb &fe    ; set loop
 defb &00
 defb &01
 defb &00
 defb &ff
 defb &ff
-defb &fc
+defb &fc    ; get loop
 
 ;----------------------------------------------
 
@@ -183,13 +183,15 @@ defw @ornament.1
 defw @ornament.2
 
 ;----------------------------------------------
+@instrument_delays:
 
 assert $ == &008c
 
-defb &01
-defb &02
-defb &04
-defb &00
+defb &01        ; default value
+
+defb &02,&04    ; 2 -> delay 4
+
+defb &00        ; end
 
 ;----------------------------------------------
 
