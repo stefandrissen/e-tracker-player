@@ -452,7 +452,7 @@ endif
     inc hl          ; hl = envelope_generator_1
     ld (@ptr.envelope_generator+1),hl
 
-l81b7:
+@get.note.again:
     ld e,(ix+@c.track.lo)
     ld d,(ix+@c.track.hi)
 
@@ -595,7 +595,7 @@ l81b7:
 
     call @read.song_table
 
-    jp l81b7
+    jp @get.note.again
 
 ;==============================================
 @handle.instrument.loop_or_delay:
@@ -750,9 +750,9 @@ l81b7:
 
     ld a,(hl)
     inc hl
-@var.82ec:
-    cp &00
-    jr nz,@handle.volume.special
+@var.default_volume_delay:
+    cp 0
+    jr nz,@handle.volume.delay
 
     ld c,(hl)           ; delay next volume change
     inc hl
@@ -801,7 +801,7 @@ l81b7:
     ret
 
 ;==============================================
-@handle.volume.special:
+@handle.volume.delay:
 
 ; input
 ;   a = value to lookup
@@ -811,8 +811,8 @@ l81b7:
 
     push hl
     ld b,a
-@var.8327:
-    ld hl,0             ; ??? set by 5th entry of song header
+@var.volume_delay:
+    ld hl,0
 @find:
     ld a,(hl)
     or a
@@ -938,8 +938,8 @@ l81b7:
     call @bc.eq.section
     ld a,(bc)
     inc bc
-    ld (@var.82ec+1),a          ; ???
-    ld (@var.8327+1),bc         ; ???
+    ld (@var.default_volume_delay+1),a
+    ld (@var.volume_delay+1),bc
 
     ld hl,@buf.channels
     ld b,@buf.channels.size
