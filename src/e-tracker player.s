@@ -839,7 +839,7 @@ endif
 
 @channel.size: equ &19
 
-@buf.channels:                                      ; &833d
+@buf.channels:
 
 @c.track:                   equ &00                 ; address of track data
     @c.track.lo:                equ &00
@@ -881,7 +881,7 @@ endif
 @ptr.channel.4: defs @channel.size
 @ptr.channel.5: defs @channel.size
 
-@out:                                               ; &83d3
+@out:
 
         defb 0          ; &00 amplitude_0
         defb 0          ; &01 amplitude_1
@@ -891,24 +891,24 @@ endif
         defb 0          ; &05 amplitude_5
         defb 0
         defb 0
-        defb 0          ; &08 frequency_tone_0      ; &83db
-        defb 0          ; &09 frequency_tone_1      ; &83dc
-        defb 0          ; &0a frequency_tone_2      ; &83dd
-        defb 0          ; &0b frequency_tone_3      ; &83de
-        defb 0          ; &0c frequency_tone_4      ; &83df
-        defb 0          ; &0d frequency_tone_5      ; &83e0
+        defb 0          ; &08 frequency_tone_0
+        defb 0          ; &09 frequency_tone_1
+        defb 0          ; &0a frequency_tone_2
+        defb 0          ; &0b frequency_tone_3
+        defb 0          ; &0c frequency_tone_4
+        defb 0          ; &0d frequency_tone_5
         defb 0
         defb 0
-        defb 0          ; &10 octave_1_0            ; &83e3
-        defb 0          ; &11 octave_3_2            ; &83e4
-        defb 0          ; &12 octave_5_4            ; &83e5
+        defb 0          ; &10 octave_1_0
+        defb 0          ; &11 octave_3_2
+        defb 0          ; &12 octave_5_4
         defb 0
-        defb 0          ; &14 frequency_enable      ; &83e7
-        defb 0          ; &15 noise_enable          ; &83e8
-        defb 0          ; &16 noise_generator_1_0   ; &83e9
+        defb 0          ; &14 frequency_enable
+        defb 0          ; &15 noise_enable
+        defb 0          ; &16 noise_generator_1_0
         defb 0
-        defb 0          ; &18 envelope_generator_0  ; &83eb
-        defb 0          ; &19 envelope_generator_1  ; &83ec
+        defb 0          ; &18 envelope_generator_0
+        defb 0          ; &19 envelope_generator_1
 
 @var.noise.0:   defb 0
 @var.noise.1:   defb 0
