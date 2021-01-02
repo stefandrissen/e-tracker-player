@@ -1,7 +1,11 @@
-; Disassembly of e-tracker player.bin
+; Disassembly of the compiled E-Tracker player
 ;
-; (C) 2020 Stefan Drissen
-
+; (C) 2020-2021 Stefan Drissen
+;
+; Object code (C) 1992 ESI
+;----------------------------------------------
+; row as shown in E-Tracker editor:
+;
 ; | 000 | --- 0000 | --- 0000 | --- 0000
 ;   row   |/| ||command + parameter
 ;         | | |+- ornament
@@ -42,13 +46,13 @@ etracker.play:
     dec a
     jr nz,@same.notes
 
-    ld ix,@ptr.channel.0
+    ld ix,@str.channel.0
 
     ld b,6
 @loop:
     push bc
     call @get.note
-    ld bc,@channel.size
+    ld bc,@str.channel.size
     add ix,bc
     pop bc
 
@@ -70,7 +74,7 @@ etracker.play:
 
 ;----------------------------------------------
 
-    ld ix,@ptr.channel.0
+    ld ix,@str.channel.0
     call @update.channel    ; sets a, l, a'
     ld (@out + saa.register.amplitude_0),a
     ld (@out + saa.register.frequency_tone_0),hl
@@ -84,7 +88,7 @@ etracker.play:
 
 ;----------------------------------------------
 
-    ld ix,@ptr.channel.1
+    ld ix,@str.channel.1
     call @update.channel
     ld (@out + saa.register.amplitude_1),a
     ld (@out + saa.register.frequency_tone_1),hl
@@ -101,7 +105,7 @@ etracker.play:
 
 ;----------------------------------------------
 
-    ld ix,@ptr.channel.2
+    ld ix,@str.channel.2
     call @update.channel
     ld (@out + saa.register.amplitude_2),a
     ld (@out + saa.register.frequency_tone_2),hl
@@ -118,7 +122,7 @@ etracker.play:
 
 ;----------------------------------------------
 
-    ld ix,@ptr.channel.3
+    ld ix,@str.channel.3
     call @update.channel
     ld (@out + saa.register.amplitude_3),a
     ld (@out + saa.register.frequency_tone_3),hl
@@ -132,7 +136,7 @@ etracker.play:
 
 ;----------------------------------------------
 
-    ld ix,@ptr.channel.4
+    ld ix,@str.channel.4
     call @update.channel
     ld (@out + saa.register.amplitude_4),a
     ld (@out + saa.register.frequency_tone_4),hl
@@ -149,7 +153,7 @@ etracker.play:
 
 ;----------------------------------------------
 
-    ld ix,@ptr.channel.5
+    ld ix,@str.channel.5
     call @update.channel
     ld (@out + saa.register.amplitude_5),a
     ld (@out + saa.register.frequency_tone_5),hl
@@ -267,21 +271,29 @@ endif
 ;----------------------------------------------
 @list.envelopes:
 
-    defb saa.envelope.reset   | saa.envelope.bits.4 | saa.envelope.mode.zero            | saa.envelope.left_right.same
+    @enabled: equ saa.envelope.enabled
+    @bits.3:  equ saa.envelope.bits.3
+    @bits.4:  equ saa.envelope.bits.4
+    @same:    equ saa.envelope.left_right.same
+    @inverse: equ saa.envelope.left_right.inverse
 
-    defb saa.envelope.enabled | saa.envelope.bits.3 | saa.envelope.mode.repeat_decay    | saa.envelope.left_right.same
-    defb saa.envelope.enabled | saa.envelope.bits.3 | saa.envelope.mode.repeat_attack   | saa.envelope.left_right.same
-    defb saa.envelope.enabled | saa.envelope.bits.3 | saa.envelope.mode.repeat_triangle | saa.envelope.left_right.same
-    defb saa.envelope.enabled | saa.envelope.bits.4 | saa.envelope.mode.repeat_decay    | saa.envelope.left_right.same
-    defb saa.envelope.enabled | saa.envelope.bits.4 | saa.envelope.mode.repeat_attack   | saa.envelope.left_right.same
-    defb saa.envelope.enabled | saa.envelope.bits.4 | saa.envelope.mode.repeat_triangle | saa.envelope.left_right.same
+    defb @same    | @bits.4 | saa.envelope.mode.zero            | saa.envelope.reset
 
-    defb saa.envelope.enabled | saa.envelope.bits.3 | saa.envelope.mode.repeat_decay    | saa.envelope.left_right.inverse
-    defb saa.envelope.enabled | saa.envelope.bits.3 | saa.envelope.mode.repeat_attack   | saa.envelope.left_right.inverse
-    defb saa.envelope.enabled | saa.envelope.bits.3 | saa.envelope.mode.repeat_triangle | saa.envelope.left_right.inverse
-    defb saa.envelope.enabled | saa.envelope.bits.4 | saa.envelope.mode.repeat_decay    | saa.envelope.left_right.inverse
-    defb saa.envelope.enabled | saa.envelope.bits.4 | saa.envelope.mode.repeat_attack   | saa.envelope.left_right.inverse
-    defb saa.envelope.enabled | saa.envelope.bits.4 | saa.envelope.mode.repeat_triangle | saa.envelope.left_right.inverse
+    defb @same    | @bits.3 | saa.envelope.mode.repeat_decay    | @enabled   ; 1
+    defb @same    | @bits.3 | saa.envelope.mode.repeat_attack   | @enabled   ; 2
+    defb @same    | @bits.3 | saa.envelope.mode.repeat_triangle | @enabled   ; 3
+
+    defb @same    | @bits.4 | saa.envelope.mode.repeat_decay    | @enabled   ; 4
+    defb @same    | @bits.4 | saa.envelope.mode.repeat_attack   | @enabled   ; 5
+    defb @same    | @bits.4 | saa.envelope.mode.repeat_triangle | @enabled   ; 5
+
+    defb @inverse | @bits.3 | saa.envelope.mode.repeat_decay    | @enabled   ; 7
+    defb @inverse | @bits.3 | saa.envelope.mode.repeat_attack   | @enabled   ; 8
+    defb @inverse | @bits.3 | saa.envelope.mode.repeat_triangle | @enabled   ; 9
+
+    defb @inverse | @bits.4 | saa.envelope.mode.repeat_decay    | @enabled   ; A
+    defb @inverse | @bits.4 | saa.envelope.mode.repeat_attack   | @enabled   ; B
+    defb @inverse | @bits.4 | saa.envelope.mode.repeat_triangle | @enabled   ; C
 
 ;----------------------------------------------
 @ornament.none:
@@ -398,12 +410,12 @@ endif
 @var.instruments:
     ld hl,0
     call @bc.eq.section.c
-    ld (ix+@c.instrument.start.lo),c
-    ld (ix+@c.instrument.start.hi),b
+    ld (ix+@ch.ptr.instrument.start  ),c
+    ld (ix+@ch.ptr.instrument.start+1),b
 
     ld hl,@instrument.none
-    ld (ix+@c.instrument.loop.lo),l
-    ld (ix+@c.instrument.loop.hi),h
+    ld (ix+@ch.ptr.instrument.loop  ),l
+    ld (ix+@ch.ptr.instrument.loop+1),h
 
     jr @set.instrument
 
@@ -416,12 +428,12 @@ endif
 @var.ornaments:
     ld hl,0
     call @bc.eq.section.c
-    ld (ix+@c.ornament.start.lo),c
-    ld (ix+@c.ornament.start.hi),b
+    ld (ix+@ch.ptr.ornament.start  ),c
+    ld (ix+@ch.ptr.ornament.start+1),b
 
     ld hl,@ornament.none
-    ld (ix+@c.ornament.loop.lo),l
-    ld (ix+@c.ornament.loop.hi),h
+    ld (ix+@ch.ptr.ornament.loop  ),l
+    ld (ix+@ch.ptr.ornament.loop+1),h
 
     jr @set.ornament
 
@@ -442,8 +454,8 @@ endif
 ; BUG: envelope set in channel 3 sets incorrect envelope generator
 ;----------------------------------------------
 
-    dec (ix+@c.delay.next_note)
-    ret p           ; ret when (ix+@c.delay.next_note) > 0
+    dec (ix+@ch.delay.next_note)
+    ret p           ; ret when (ix+@ch.delay.next_note) > 0
 
     ld a,b
     cp 3            ; !!! bug - should be cp 4 according to DTA
@@ -453,8 +465,8 @@ endif
     ld (@ptr.envelope_generator+1),hl
 
 @get.note.again:
-    ld e,(ix+@c.track.lo)
-    ld d,(ix+@c.track.hi)
+    ld e,(ix+@ch.ptr.track  )
+    ld d,(ix+@ch.ptr.track+1)
 
 @get.command:
 
@@ -481,29 +493,29 @@ endif
 ; input
 ;   c = [&00-&60]
 
-    ld (ix+@c.note),c
+    ld (ix+@ch.note),c
 
-    ld c,(ix+@c.instrument.start.lo)
-    ld b,(ix+@c.instrument.start.hi)
+    ld c,(ix+@ch.ptr.instrument.start  )
+    ld b,(ix+@ch.ptr.instrument.start+1)
 
 ;----------------------------------------------
 @set.instrument:
 
-    ld (ix+@c.instrument.lo),c
-    ld (ix+@c.instrument.hi),b
+    ld (ix+@ch.ptr.instrument  ),c
+    ld (ix+@ch.ptr.instrument+1),b
 
-    ld c,(ix+@c.ornament.start.lo)
-    ld b,(ix+@c.ornament.start.hi)
+    ld c,(ix+@ch.ptr.ornament.start  )
+    ld b,(ix+@ch.ptr.ornament.start+1)
 
 ;----------------------------------------------
 @set.ornament:
 
-    ld (ix+@c.ornament.lo),c
-    ld (ix+@c.ornament.hi),b
+    ld (ix+@ch.ptr.ornament  ),c
+    ld (ix+@ch.ptr.ornament+1),b
 
-    ld (ix+@c.delay.next_ornament),1
-    ld (ix+@c.delay.next_instrument),1
-    ld (ix+@c.delay_next_volume),1
+    ld (ix+@ch.delay.next_ornament),1
+    ld (ix+@ch.delay.next_instrument),1
+    ld (ix+@ch.delay.next_volume),1
 
     jr @get.command
 
@@ -528,7 +540,7 @@ endif
 ; input
 ;   c = [&00-&01]
 
-    ld (ix+@c.instrument.inversion),c
+    ld (ix+@ch.instrument.inversion),c
 
     jr @get.command
 
@@ -550,7 +562,7 @@ endif
 ; input
 ;   c = [&00-&0f]
 
-    ld (ix+@c.volume.reduction),c
+    ld (ix+@ch.volume.reduction),c
 
     jr @get.command
 
@@ -584,9 +596,9 @@ endif
 ; input
 ;   c = [&00-&2d]
 
-    ld (ix+@c.delay.next_note),c
-    ld (ix+@c.track.lo),e
-    ld (ix+@c.track.hi),d
+    ld (ix+@ch.delay.next_note),c
+    ld (ix+@ch.ptr.track  ),e
+    ld (ix+@ch.ptr.track+1),d
 
     ret
 
@@ -613,15 +625,15 @@ endif
 ;----------------------------------------------
 @set.instrument_loop:
 
-    ld (ix+@c.instrument.loop.lo),l
-    ld (ix+@c.instrument.loop.hi),h
+    ld (ix+@ch.ptr.instrument.loop  ),l
+    ld (ix+@ch.ptr.instrument.loop+1),h
     jr @handle.instrument
 
 ;----------------------------------------------
 @get.instrument_loop:
 
-    ld l,(ix+@c.instrument.loop.lo)
-    ld h,(ix+@c.instrument.loop.hi)
+    ld l,(ix+@ch.ptr.instrument.loop  )
+    ld h,(ix+@ch.ptr.instrument.loop+1)
     jr @handle.instrument
 
 ;==============================================
@@ -640,15 +652,15 @@ endif
 ;----------------------------------------------
 @get.ornament_loop:
 
-    ld l,(ix+@c.ornament.loop.lo)
-    ld h,(ix+@c.ornament.loop.hi)
+    ld l,(ix+@ch.ptr.ornament.loop  )
+    ld h,(ix+@ch.ptr.ornament.loop+1)
     jr @handle.ornament
 
 ;----------------------------------------------
 @set.ornament_loop:
 
-    ld (ix+@c.ornament.loop.lo),l
-    ld (ix+@c.ornament.loop.hi),h
+    ld (ix+@ch.ptr.ornament.loop  ),l
+    ld (ix+@ch.ptr.ornament.loop+1),h
     jr @handle.ornament
 
 ;==============================================
@@ -663,11 +675,11 @@ endif
 ;   a'  =   noise
 ;----------------------------------------------
 
-    ld e,(ix+@c.instrument.pitch.lo)
-    ld d,(ix+@c.instrument.pitch.hi)
-    dec (ix+@c.delay.next_instrument)
-    ld l,(ix+@c.instrument.lo)
-    ld h,(ix+@c.instrument.hi)
+    ld e,(ix+@ch.ptr.instrument.pitch  )
+    ld d,(ix+@ch.ptr.instrument.pitch+1)
+    dec (ix+@ch.delay.next_instrument)
+    ld l,(ix+@ch.ptr.instrument  )
+    ld h,(ix+@ch.ptr.instrument+1)
     jr nz,@no.instrument.change
 
     ld c,1
@@ -677,22 +689,22 @@ endif
     rrca
     jr nc,@handle.instrument.loop_or_delay  ; a = even - returns c with delay until next command
 
-    ld (ix+@c.delay.next_instrument),c
-    ld (ix+@c.instrument.pitch.hi),a
+    ld (ix+@ch.delay.next_instrument),c
+    ld (ix+@ch.ptr.instrument.pitch+1),a
     ld e,(hl)
     ld d,a
-    ld (ix+@c.instrument.pitch.lo),e
+    ld (ix+@ch.ptr.instrument.pitch),e
     inc hl
 
 @no.instrument.change:
     push hl
-    ld a,(ix+@c.ornament)
-    dec (ix+@c.delay.next_ornament)
+    ld a,(ix+@ch.ornament.note)
+    dec (ix+@ch.delay.next_ornament)
     jr nz,@no.ornament.change
 
     ld c,1
-    ld l,(ix+@c.ornament.lo)
-    ld h,(ix+@c.ornament.hi)
+    ld l,(ix+@ch.ptr.ornament  )
+    ld h,(ix+@ch.ptr.ornament+1)
 @handle.ornament:
     ld a,(hl)
     inc hl
@@ -700,13 +712,13 @@ endif
                                             ; since they wrap around anyway
     jr nc,@handle.ornament.loop_or_delay    ; a >= 8 * 12
 
-    ld (ix+@c.delay.next_ornament),c
-    ld (ix+@c.ornament),a
-    ld (ix+@c.ornament.lo),l
-    ld (ix+@c.ornament.hi),h
+    ld (ix+@ch.delay.next_ornament),c
+    ld (ix+@ch.ornament.note),a
+    ld (ix+@ch.ptr.ornament  ),l
+    ld (ix+@ch.ptr.ornament+1),h
 
 @no.ornament.change:
-    add a,(ix+@c.note)
+    add a,(ix+@ch.note)
     cp 8 * 12 - 1
     ld hl,&07ff     ; maximum octave (7) + note (&ff)
     jr z,@max_note  ; a == &5f
@@ -730,7 +742,7 @@ endif
     ld l,(hl)
     ld h,a              ; hl = octave + frequency
 @max_note:
-    add hl,de           ; de = @c.instrument.pitch
+    add hl,de           ; de = instrument.pitch
     ld a,h
     and &07             ; prevent octave overflow
     ld h,a
@@ -743,9 +755,9 @@ endif
     ex af,af'           ; a' used by @get.noise to fill bit 7 of h & bit 7 of l
 
     ex de,hl
-    pop hl              ; <- @c.instrument
-    ld a,(ix+@c.volume)
-    dec (ix+@c.delay_next_volume)
+    pop hl              ; <- @ch.ptr.instrument
+    ld a,(ix+@ch.volume)
+    dec (ix+@ch.delay.next_volume)
     jr nz,@no.volume.change
 
     ld a,(hl)
@@ -760,14 +772,14 @@ endif
     ld a,(hl)           ; volume
     inc hl
 @use.volume.a:
-    ld (ix+@c.delay_next_volume),c
+    ld (ix+@ch.delay.next_volume),c
 
 @no.volume.change:
-    ld (ix+@c.instrument.lo),l
-    ld (ix+@c.instrument.hi),h
-    ld (ix+@c.volume),a
+    ld (ix+@ch.ptr.instrument  ),l
+    ld (ix+@ch.ptr.instrument+1),h
+    ld (ix+@ch.volume),a
     ex de,hl
-    ld b,(ix+@c.volume.reduction)
+    ld b,(ix+@ch.volume.reduction)
 
     ld c,a
     and &0f
@@ -786,7 +798,7 @@ endif
 @volume_ge_0:
     ld d,a
 
-    ld a,(ix+@c.instrument.inversion)
+    ld a,(ix+@ch.instrument.inversion)
     or a
     ld a,e
     jr nz,@inverted
@@ -837,49 +849,41 @@ endif
 
 ;----------------------------------------------
 
-@channel.size: equ &19
+@str.channel.0:
 
-@buf.channels:
+    org 0
 
-@c.track:                   equ &00                 ; address of track data
-    @c.track.lo:                equ &00
-    @c.track.hi:                equ &01
+@ch.ptr.track:              defw 0
+@ch.ptr.instrument:         defw 0
+@ch.ptr.instrument.loop:    defw 0
+@ch.ptr.ornament:           defw 0
+@ch.ptr.ornament.loop:      defw 0
+@ch.ptr.instrument.pitch:   defw 0
 
-@c.instrument.lo:           equ &02
-@c.instrument.hi:           equ &03
-@c.instrument.loop.lo:      equ &04
-@c.instrument.loop.hi:      equ &05
+@ch.volume:                 defb 0
+@ch.ornament.note:          defb 0
+@ch.note:                   defb 0
 
-@c.ornament.lo:             equ &06
-@c.ornament.hi:             equ &07
-@c.ornament.loop.lo:        equ &08
-@c.ornament.loop.hi:        equ &09
+@ch.ptr.instrument.start:   defw 0
+@ch.ptr.ornament.start:     defw 0
 
-@c.instrument.pitch.lo:     equ &0a
-@c.instrument.pitch.hi:     equ &0b
+@ch.delay.next_note:        defb 0
+@ch.delay.next_ornament:    defb 0
+@ch.delay.next_instrument:  defb 0
+@ch.delay.next_volume:      defb 0
 
-@c.volume:                  equ &0c
-@c.ornament:                equ &0d
-@c.note:                    equ &0e
+@ch.instrument.inversion:   defb 0
+@ch.volume.reduction:       defb 0
 
-@c.instrument.start.lo:     equ &0f
-@c.instrument.start.hi:     equ &10
-@c.ornament.start.lo:       equ &11
-@c.ornament.start.hi:       equ &12
+@str.channel.size: equ $
 
-@c.delay.next_note:         equ &13
-@c.delay.next_ornament:     equ &14
-@c.delay.next_instrument:   equ &15
-@c.delay_next_volume:       equ &16
-@c.instrument.inversion:    equ &17
-@c.volume.reduction:        equ &18
+    org @str.channel.0 + @str.channel.size
 
-@ptr.channel.0: defs @channel.size
-@ptr.channel.1: defs @channel.size
-@ptr.channel.2: defs @channel.size
-@ptr.channel.3: defs @channel.size
-@ptr.channel.4: defs @channel.size
-@ptr.channel.5: defs @channel.size
+@str.channel.1: defs @str.channel.size
+@str.channel.2: defs @str.channel.size
+@str.channel.3: defs @str.channel.size
+@str.channel.4: defs @str.channel.size
+@str.channel.5: defs @str.channel.size
 
 @out:
 
@@ -889,31 +893,31 @@ endif
         defb 0          ; &03 amplitude_3
         defb 0          ; &04 amplitude_4
         defb 0          ; &05 amplitude_5
-        defb 0
-        defb 0
+        defb 0          ; ---
+        defb 0          ; ---
         defb 0          ; &08 frequency_tone_0
         defb 0          ; &09 frequency_tone_1
         defb 0          ; &0a frequency_tone_2
         defb 0          ; &0b frequency_tone_3
         defb 0          ; &0c frequency_tone_4
         defb 0          ; &0d frequency_tone_5
-        defb 0
-        defb 0
+        defb 0          ; ---
+        defb 0          ; ---
         defb 0          ; &10 octave_1_0
         defb 0          ; &11 octave_3_2
         defb 0          ; &12 octave_5_4
-        defb 0
+        defb 0          ; ---
         defb 0          ; &14 frequency_enable
         defb 0          ; &15 noise_enable
         defb 0          ; &16 noise_generator_1_0
-        defb 0
+        defb 0          ; ---
         defb 0          ; &18 envelope_generator_0
         defb 0          ; &19 envelope_generator_1
 
 @var.noise.0:   defb 0
 @var.noise.1:   defb 0
 
-@buf.channels.size: equ $ - @buf.channels
+@out.size: equ $ - @out
 
 ;==============================================
 @init:
@@ -941,8 +945,8 @@ endif
     ld (@var.default_volume_delay+1),a
     ld (@var.volume_delay+1),bc
 
-    ld hl,@buf.channels
-    ld b,@buf.channels.size
+    ld hl,@str.channel.0
+    ld b,6 * @str.channel.size + @out.size
     xor a
 @loop:
     ld (hl),a
@@ -952,25 +956,25 @@ endif
     inc a                   ; -> a = 1
     ld (@var.delay+1),a
 
-    ld ix,@ptr.channel.0
-    ld de,@channel.size
+    ld ix,@str.channel.0
+    ld de,@str.channel.size
 
     ld b,6
 @loop:
-    ld (ix+@c.delay.next_ornament),a    ; a = 1
-    ld (ix+@c.delay.next_instrument),a  ; a = 1
-    ld (ix+@c.delay_next_volume),a      ; a = 1
+    ld (ix+@ch.delay.next_ornament),a    ; a = 1
+    ld (ix+@ch.delay.next_instrument),a  ; a = 1
+    ld (ix+@ch.delay.next_volume),a      ; a = 1
 
     ld hl,@instrument.none
-    ld (ix+@c.instrument.start.lo),l
-    ld (ix+@c.instrument.start.hi),h
+    ld (ix+@ch.ptr.instrument.start  ),l
+    ld (ix+@ch.ptr.instrument.start+1),h
 
-    ld (ix+@c.instrument.lo),l
-    ld (ix+@c.instrument.hi),h
+    ld (ix+@ch.ptr.instrument  ),l
+    ld (ix+@ch.ptr.instrument+1),h
 
     ld hl,@ornament.none
-    ld (ix+@c.ornament.start.lo),l
-    ld (ix+@c.ornament.start.hi),h
+    ld (ix+@ch.ptr.ornament.start  ),l
+    ld (ix+@ch.ptr.ornament.start+1),h
     add ix,de
     djnz @-loop
 
@@ -1008,22 +1012,22 @@ endif
 @var.patterns:
     ld hl,0
     call @bc.eq.section.c
-    ld (@ptr.channel.0+@c.track),bc
+    ld (@str.channel.0+@ch.ptr.track),bc
 
     call @bc.eq.section
-    ld (@ptr.channel.1+@c.track),bc
+    ld (@str.channel.1+@ch.ptr.track),bc
 
     call @bc.eq.section
-    ld (@ptr.channel.2+@c.track),bc
+    ld (@str.channel.2+@ch.ptr.track),bc
 
     call @bc.eq.section
-    ld (@ptr.channel.3+@c.track),bc
+    ld (@str.channel.3+@ch.ptr.track),bc
 
     call @bc.eq.section
-    ld (@ptr.channel.4+@c.track),bc
+    ld (@str.channel.4+@ch.ptr.track),bc
 
     call @bc.eq.section
-    ld (@ptr.channel.5+@c.track),bc
+    ld (@str.channel.5+@ch.ptr.track),bc
 
     ret
 
