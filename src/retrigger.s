@@ -19,30 +19,30 @@ defm "ETracker (C) BY ESI."
 @track.1:
 assert $ == &1e
 
-defb &11
-defb &f1
-defb &51
+defb &11    ; volume reduction 0
+defb &f1    ; delay next note 31
+defb &51    ; end of track
 
 @track.2:
 assert $ == &21
 
-defb &f1
-defb &51
+defb &f1    ; delay next note 31
+defb &51    ; end of track
 
 @track.3:
 assert $ == &23
 
-defb &d2
-defb &51
+defb &d2    ; delay next note 0
+defb &51    ; end of track
 
 @track.4:
 assert $ == &25
 
-defb &53
-defb &31
-defb &21
-defb &f1
-defb &51
+defb &53    ; instrument 2
+defb &31    ; ornament 2
+defb &21    ; envelope 1
+defb &f1    ; delay next note 31
+defb &51    ; end of track
 
 @track.5:   ; first pattern, channel C
 assert $ == &2a
@@ -52,18 +52,25 @@ defb &30    ; ornament 1
 defb &03    ; song speed 4
 defb &8a    ; note &18 C-3
 defb &d2    ; delay next note 0
+
 defb &11    ; volume reduction 0
 defb &d2    ; delay next note 0
+
 defb &89    ; note &17 B-2
 defb &d3    ; delay next note 1
+
 defb &88    ; note &16 A#2
 defb &d3    ; delay next note 1
+
 defb &87    ; note &15 A-2
 defb &d5    ; delay next note 3
+
 defb &87    ; note &15 A-2
 defb &d5    ; delay next note 3
+
 defb &7e    ; note &0c C-2
 defb &d3    ; delay next note 1
+
 defb &53    ; instrument 2
 defb &e1    ; delay next note 15
 defb &51    ; end of track
@@ -71,10 +78,15 @@ defb &51    ; end of track
 @track.6:   ; second pattern, channel c - problem track
 assert $ == &3e
 
-defb &52    ; instrument 1  ; this is retriggering note
-defb &30    ; ornament 1
+defb &52    ; instrument 1  ; this is retriggering note - should be ignored, no note follows
+defb &30    ; ornament 1    ; but only when /first/ note of pattern
+
 defb &03    ; song speed 4
 defb &d5    ; delay next note 3
+
+;defb &52    ; instrument 1  ; move here
+;defb &30    ; ornament 1    ; move here
+
 defb &03    ; song speed 4
 defb &88    ; note &16 A#2
 defb &d3    ; delay next note 1
@@ -91,19 +103,19 @@ defb &51    ; end of track
 @track.7:
 assert $ == &4e
 
-defb &1a
-defb &d2
-defb &1b
-defb &d2
-defb &1c
-defb &d2
-defb &1d
-defb &d2
-defb &1e
-defb &d2
-defb &1f
-defb &ec
-defb &51
+defb &1a    ; volume reduction 9
+defb &d2    ; delay next note 0
+defb &1b    ; volume reduction 10
+defb &d2    ; delay next note 0
+defb &1c    ; volume reduction 11
+defb &d2    ; delay next note 0
+defb &1d    ; volume reduction 12
+defb &d2    ; delay next note 0
+defb &1e    ; volume reduction 13
+defb &d2    ; delay next note 0
+defb &1f    ; volume reduction 14
+defb &ec    ; delay next note 26
+defb &51    ; end of track
 
 ;----------------------------------------------
 
